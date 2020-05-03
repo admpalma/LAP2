@@ -18,8 +18,8 @@ COMPILAÇÃO
 
 IDENTIFICAÇÃO DOS AUTORES
 
-  Aluno 1: número1 nome1
-  Aluno 2: número2 nome2
+  Aluno 1: 55415 Andre Palma
+  Aluno 2: 54953 Tiago Teles
 
 COMENTÁRIO
 
