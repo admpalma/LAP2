@@ -28,6 +28,7 @@ COMENTÁRIO
 
 */
 
+#define USE_PTS		true
 #include "Cartography.h"
 
 /* STRING -------------------------------------- */
@@ -207,9 +208,8 @@ static Ring readRing(FILE *f)
 {
 	Ring r;
 	int i, n = readInt(f);
-	if( n > MAX_VERTEXES )
-		error("Anel demasiado extenso");
 	r.nVertexes = n;
+	r.vertexes = malloc(sizeof(Coordinates)*n);
 	for( i = 0 ; i < n ; i++ ) {
 		r.vertexes[i] = readCoordinates(f);
 	}
@@ -253,10 +253,9 @@ static Parcel readParcel(FILE *f)
 	Parcel p;
 	p.identification = readIdentification(f);
 	int i, n = readInt(f);
-	if( n > MAX_HOLES )
-		error("Poligono com demasiados buracos");
 	p.edge = readRing(f);
 	p.nHoles = n;
+	p.holes = malloc(sizeof(Ring)*n);
 	for( i = 0 ; i < n ; i++ ) {
 		p.holes[i] = readRing(f);
 	}
@@ -298,11 +297,11 @@ int loadCartography(String fileName, Cartography *cartography)
 	if( f == NULL )
 		error("Impossivel abrir ficheiro");
 	int nParcels = readInt(f);
-	if( nParcels > MAX_PARCELS )
-		error("Demasiadas parcelas no ficheiro");
+	*cartography = malloc(sizeof(Parcel)*nParcels);
 	for( i = 0 ; i < nParcels ; i++ ) {
 		(*cartography)[i] = readParcel(f);
 	}
+
 	fclose(f);
 	return nParcels;
 }
