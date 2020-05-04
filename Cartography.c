@@ -471,6 +471,40 @@ static void commandTravel(double lat, double lon, int pos, Cartography cartograp
 	printf("%f\n", minDistance);
 }
 
+static void commandHowMany(int pos, Cartography cartography, int nParcels)
+{
+	if (!checkArgs(pos) || !checkPos(pos, nParcels)) {
+		return;
+	}
+	#define parish cartography[pos].identification.freguesia
+	#define county cartography[pos].identification.concelho
+	#define district cartography[pos].identification.distrito
+
+	const int DISTRICT = 0, COUNTY = 1, PARISH = 2;
+	int howMany[3] = { 0, 0, 0 };
+	for (int i = 0; i < nParcels; i++)
+	{
+		if (strcmp(district, cartography[i].identification.distrito) == 0) {
+			howMany[DISTRICT]++;
+			if (strcmp(county, cartography[i].identification.concelho) == 0) {
+				howMany[COUNTY]++;
+				if (strcmp(parish, cartography[i].identification.freguesia) == 0) {
+					// TODO Can be optimized
+					howMany[PARISH]++;
+				}
+			}
+		}
+	}
+	#undef parish
+	#undef county
+	#undef district
+	int i = 3;
+	do {
+		showIdentification(pos, cartography[pos].identification, i);
+		showValue(howMany[--i]);
+	} while (i > 0);
+}
+
 void interpreter(Cartography cartography, int nParcels)
 {
 	String commandLine;
@@ -500,6 +534,10 @@ void interpreter(Cartography cartography, int nParcels)
 
 			case 'V': case 'v':	// Viagem
 				commandTravel(arg1, arg2, (int)arg3, cartography, nParcels);
+				break;
+
+			case 'Q': case 'q':	// Quantos
+				commandHowMany((int)arg1, cartography, nParcels);
 				break;
 
 			case 'Z': case 'z':	// terminar
