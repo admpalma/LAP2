@@ -171,10 +171,11 @@ static Rectangle calculateBoundingBox(Coordinates vs[], int n)
 {
 	//TODO Done?
 	if(!n) error("n = 0 at calculateBoundingBox");
-	double maxLat=vs[n-1].lat,
-		   maxLon=vs[n-1].lon,
-		   minLat=vs[n-1].lat,
-		   minLon=vs[n-1].lon;
+	n--;
+	double maxLat=vs[n].lat,
+		   maxLon=vs[n].lon,
+		   minLat=vs[n].lat,
+		   minLon=vs[n].lon;
 	while(n-->0){
 		if(maxLat<vs[n].lat){
 			maxLat = vs[n].lat;
@@ -190,7 +191,7 @@ static Rectangle calculateBoundingBox(Coordinates vs[], int n)
 		}
 	}
 	/* printf("[%f,%f,%f,%f]\n",maxLat,maxLon,minLat,minLon); */
-	return rect(coord(maxLat,maxLon), coord(minLat,minLon));
+	return rect(coord(maxLat,minLon), coord(minLat,maxLon));
 }
 
 bool insideRectangle(Coordinates c, Rectangle r)
@@ -394,6 +395,7 @@ static void commandMaximum(int pos, Cartography cartography, int n)
 
 //X
 static void commandExtreme(Cartography cartography,int n){
+	n--;
 	int maxLat=n,
 		maxLon=n,
 		minLat=n,
@@ -404,30 +406,30 @@ static void commandExtreme(Cartography cartography,int n){
 				cartography[n].edge.boundingBox.topLeft.lat){
 			maxLat = n;
 		}
-		if(cartography[maxLon].edge.boundingBox.topLeft.lat<
+		if(cartography[maxLon].edge.boundingBox.bottomRight.lon<=
 				cartography[n].edge.boundingBox.topLeft.lon){
 			maxLon = n;
 		}
-		if(cartography[minLat].edge.boundingBox.topLeft.lat>
+		if(cartography[minLat].edge.boundingBox.bottomRight.lat>
 				cartography[n].edge.boundingBox.bottomRight.lat){
 			minLat = n;
 		}
-		if(cartography[minLon].edge.boundingBox.topLeft.lat>
+		if(cartography[minLon].edge.boundingBox.topLeft.lon>
 				cartography[n].edge.boundingBox.bottomRight.lon){
 			minLon = n;
 		}
 	}
-	showIdentification(n, cartography[maxLat].identification, 3);
-	showValue('N');
+	showIdentification(maxLat, cartography[maxLat].identification, 3);
+	printf("[N]\n");
 
-	showIdentification(n, cartography[maxLon].identification, 3);
-	showValue('E');
+	showIdentification(maxLon, cartography[maxLon].identification, 3);
+	printf("[E]\n");
 
-	showIdentification(n, cartography[minLat].identification, 3);
-	showValue('S');
+	showIdentification(minLat, cartography[minLat].identification, 3);
+	printf("[S]\n");
 
-	showIdentification(n, cartography[minLon].identification, 3);
-	showValue('W');
+	showIdentification(minLon, cartography[minLon].identification, 3);
+	printf("[W]\n");
 	/* printf("[%f,%f,%f,%f]\n",maxLat,maxLon,minLat,minLon); */
 }
 
