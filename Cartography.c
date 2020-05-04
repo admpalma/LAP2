@@ -467,7 +467,7 @@ void interpreter(Cartography cartography, int nParcels)
 				break;
 
 			case 'M': case 'm':	// maximo
-				commandMaximum(arg1, cartography, nParcels);
+				commandMaximum((int)arg1, cartography, nParcels);
 				break;
 
 			case 'X': case 'x':	// eXtremo
@@ -475,7 +475,7 @@ void interpreter(Cartography cartography, int nParcels)
 				break;
 
 			case 'R': case 'r':	// Resumo
-				commandSummary(arg1, cartography, nParcels);
+				commandSummary((int)arg1, cartography, nParcels);
 				break;
 
 			case 'V': case 'v':	// Viagem
