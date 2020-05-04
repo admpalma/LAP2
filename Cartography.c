@@ -169,14 +169,27 @@ static void showRectangle(Rectangle r)
 
 static Rectangle calculateBoundingBox(Coordinates vs[], int n)
 {
-////// FAZER
-	return rect(coord(-9999,-9999), coord(9999,9999));
+	//TODO Done?
+	if(!n) error("n = 0 at calculateBoundingBox");
+	int maxLat=vs[0].lat, maxLon=vs[0].lon, minLat=vs[0].lat, minLon=vs[0].lon;
+	while(--n>0){
+		if(maxLat<vs[n].lat)
+			maxLat = vs[n].lat;
+		if(maxLon<vs[n].lon)
+			maxLon = vs[n].lon;
+		if(minLat>vs[n].lat)
+			minLat = vs[n].lat;
+		if(minLon>vs[n].lon)
+			minLon = vs[n].lon;
+	}
+	return rect(coord(maxLat,maxLon), coord(minLat,minLon));
 }
 
 bool insideRectangle(Coordinates c, Rectangle r)
 {
-	////// FAZER
-		return false;
+	//TODO Done?
+	return !(r.topLeft.lat < c.lat ||r.topLeft.lon < c.lon ||
+			r.bottomRight.lat > c.lat || r.bottomRight.lon > c.lon);
 }
 
 
@@ -219,7 +232,7 @@ bool insideRing(Coordinates c, Ring r)
 
 bool adjacentRings(Ring a, Ring b)
 {
-////// FAZER
+//TODO
 	return false;
 }
 
@@ -255,13 +268,13 @@ static void showParcel(int pos, Parcel p, int lenght)
 
 bool insideParcel(Coordinates c, Parcel p)
 {
-////// FAZER
+//TODO
 	return false;
 }
 
 bool adjacentParcels(Parcel a, Parcel b)
 {
-	////// FAZER
+	//TODO
 		return false;
 }
 
@@ -334,12 +347,48 @@ static void commandListCartography(Cartography cartography, int n)
 	showCartography(cartography, n);
 }
 
+/* static Cartography grabParish(int pos, Cartography cartography,Identification id){ */
+/* 	Cartography newC = */
+/* 	for(  ; j < n ; j++ ) { */
+/* 		if( !sameIdentification(cartography[j].identification, id, 3) ) */
+/* 			return j-1; */
+/* 	} */
+/* 	return n-1; */
+
+/* } */
+
+static int countVertices(Parcel p){
+	int totalEdginess = p.edge.nVertexes;
+	for(int i = 0;i<p.nHoles;i++){
+		totalEdginess+=p.holes[i].nVertexes;
+	}
+	return totalEdginess;
+}
 // M pos
 static void commandMaximum(int pos, Cartography cartography, int n)
 {
 	if( !checkArgs(pos) || !checkPos(pos, n) )
 		return;
-	////// FAZER
+	//TODO
+	int edgeIndex = pos++;
+	int maxEdginess = countVertices(cartography[pos]);
+	Identification id = cartography[pos].identification;
+	/* Put here for less dynamic memory management */
+	int currentEdginess = 0;
+	for(;pos<n;pos++){
+		if(sameIdentification(cartography[pos].identification, id, 3) ){
+			currentEdginess = countVertices(cartography[pos]);
+			if(currentEdginess>maxEdginess){
+				maxEdginess = currentEdginess;
+				edgeIndex = pos;
+			}
+		}else{
+			break;
+		}
+	}
+	showIdentification(edgeIndex, cartography[edgeIndex].identification, 3);
+	showValue(maxEdginess);
+
 }
 
 void interpreter(Cartography cartography, int n)
