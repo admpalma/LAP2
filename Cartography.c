@@ -451,6 +451,26 @@ static void commandSummary(int pos, Cartography cartography, int nParcels)
 	printf("\n");
 }
 
+static void commandTravel(double lat, double lon, int pos, Cartography cartography, int nParcels)
+{
+	if (!checkArgs(pos) || !checkPos(pos, nParcels)) {
+		return;
+	}
+
+	Coordinates vertex = { lat, lon };
+	double minDistance = haversine(vertex, cartography[pos].edge.vertexes[0]);
+	for (int i = 1; i < cartography[pos].edge.nVertexes; i++)
+	{
+		double distance = haversine(vertex, cartography[pos].edge.vertexes[i]);
+		if (distance < minDistance)
+		{
+			minDistance = distance;
+		}
+	}
+
+	printf("%f\n", minDistance);
+}
+
 void interpreter(Cartography cartography, int nParcels)
 {
 	String commandLine;
@@ -479,7 +499,7 @@ void interpreter(Cartography cartography, int nParcels)
 				break;
 
 			case 'V': case 'v':	// Viagem
-				commandTravel(arg1, arg2, arg3, cartography, nParcels);
+				commandTravel(arg1, arg2, (int)arg3, cartography, nParcels);
 				break;
 
 			case 'Z': case 'z':	// terminar
