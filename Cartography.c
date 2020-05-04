@@ -171,9 +171,11 @@ static Rectangle calculateBoundingBox(Coordinates vs[], int n)
 {
 	//TODO Done?
 	if(!n) error("n = 0 at calculateBoundingBox");
-	int maxLat=vs[n].lat, maxLon=vs[n].lon, minLat=vs[n].lat, minLon=vs[n].lon;
-	while(--n>0){
-		printf("",vs[n].lat,vs[n].lon);
+	double maxLat=vs[n-1].lat,
+		   maxLon=vs[n-1].lon,
+		   minLat=vs[n-1].lat,
+		   minLon=vs[n-1].lon;
+	while(n-->0){
 		if(maxLat<vs[n].lat){
 			maxLat = vs[n].lat;
 		}
@@ -187,7 +189,7 @@ static Rectangle calculateBoundingBox(Coordinates vs[], int n)
 			minLon = vs[n].lon;
 		}
 	}
-	printf("[%f,%f,%f,%f]\n",maxLat,maxLon,minLat,minLon);
+	/* printf("[%f,%f,%f,%f]\n",maxLat,maxLon,minLat,minLon); */
 	return rect(coord(maxLat,maxLon), coord(minLat,minLon));
 }
 
@@ -213,6 +215,7 @@ static Ring readRing(FILE *f)
 	}
 	r.boundingBox =
 		calculateBoundingBox(r.vertexes, r.nVertexes);
+	/* printf("[%f,%f,%f,%f]\n",r.boundingBox.topLeft.lat,r.boundingBox.topLeft.lon,r.boundingBox.bottomRight.lat,r.boundingBox.bottomRight.lon); */
 	return r;
 }
 
@@ -391,21 +394,41 @@ static void commandMaximum(int pos, Cartography cartography, int n)
 
 //X
 static void commandExtreme(Cartography cartography,int n){
-	int maxLat=cartography[n].edge.boundingBox.topLeft.lat,
-		maxLon=cartography[n].edge.boundingBox.topLeft.lon,
-		minLat=cartography[n].edge.boundingBox.bottomRight.lat,
-		minLon=cartography[n].edge.boundingBox.bottomRight.lon;
-	while(n--<0){
-		if(maxLat<cartography[n].edge.boundingBox.topLeft.lat)
-			maxLat = cartography[n].edge.boundingBox.topLeft.lat;
-		if(maxLon<cartography[n].edge.boundingBox.topLeft.lon)
-			maxLon = cartography[n].edge.boundingBox.topLeft.lon;
-		if(minLat>cartography[n].edge.boundingBox.bottomRight.lat)
-			minLat = cartography[n].edge.boundingBox.bottomRight.lat;
-		if(minLon>cartography[n].edge.boundingBox.bottomRight.lon)
-			minLon = cartography[n].edge.boundingBox.bottomRight.lon;
+	int maxLat=n,
+		maxLon=n,
+		minLat=n,
+		minLon=n;
+
+	while(n-->0){
+		if(cartography[maxLat].edge.boundingBox.topLeft.lat<
+				cartography[n].edge.boundingBox.topLeft.lat){
+			maxLat = n;
+		}
+		if(cartography[maxLon].edge.boundingBox.topLeft.lat<
+				cartography[n].edge.boundingBox.topLeft.lon){
+			maxLon = n;
+		}
+		if(cartography[minLat].edge.boundingBox.topLeft.lat>
+				cartography[n].edge.boundingBox.bottomRight.lat){
+			minLat = n;
+		}
+		if(cartography[minLon].edge.boundingBox.topLeft.lat>
+				cartography[n].edge.boundingBox.bottomRight.lon){
+			minLon = n;
+		}
 	}
-	printf("[%f,%f,%f,%f]\n",maxLat,maxLon,minLat,minLon);
+	showIdentification(n, cartography[maxLat].identification, 3);
+	showValue('N');
+
+	showIdentification(n, cartography[maxLon].identification, 3);
+	showValue('E');
+
+	showIdentification(n, cartography[minLat].identification, 3);
+	showValue('S');
+
+	showIdentification(n, cartography[minLon].identification, 3);
+	showValue('W');
+	/* printf("[%f,%f,%f,%f]\n",maxLat,maxLon,minLat,minLon); */
 }
 
 void interpreter(Cartography cartography, int n)
