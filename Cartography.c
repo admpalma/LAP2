@@ -171,11 +171,10 @@ static Rectangle calculateBoundingBox(Coordinates vs[], int n)
 {
 	//TODO Done?
 	if(!n) error("n = 0 at calculateBoundingBox");
-	n--;
-	double maxLat=vs[n].lat,
-		   maxLon=vs[n].lon,
-		   minLat=vs[n].lat,
-		   minLon=vs[n].lon;
+	double maxLat=vs[n-1].lat,
+		   maxLon=vs[n-1].lon,
+		   minLat=vs[n-1].lat,
+		   minLon=vs[n-1].lon;
 	while(n-->0){
 		if(maxLat<vs[n].lat){
 			maxLat = vs[n].lat;
