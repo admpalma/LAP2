@@ -431,6 +431,26 @@ static void commandExtreme(Cartography cartography,int n){
 	printf("[W]\n");
 }
 
+static void commandSummary(int pos, Cartography cartography, int n)
+{
+	if (!checkArgs(pos) || !checkPos(pos, n)) {
+		return;
+	}
+
+	showIdentification(pos, cartography[pos].identification, 3);
+	printf("\n");
+
+	printf("     %d ", cartography[pos].edge.nVertexes);
+
+	for (int i = 0; i < cartography[pos].nHoles; i++)
+	{
+		printf("%d ", cartography[pos].holes->nVertexes);
+	}
+
+	showRectangle(cartography[pos].edge.boundingBox);
+	printf("\n");
+}
+
 void interpreter(Cartography cartography, int n)
 {
 	String commandLine;
@@ -452,6 +472,10 @@ void interpreter(Cartography cartography, int n)
 
 			case 'X': case 'x':	// eXtremo
 				commandExtreme(cartography, n);
+				break;
+
+			case 'R': case 'r':	// Resumo
+				commandSummary(arg1, cartography, n);
 				break;
 
 			case 'Z': case 'z':	// terminar
