@@ -297,14 +297,14 @@ int loadCartography(String fileName, Cartography *cartography)
 	f = fopen(fileName, "r");
 	if( f == NULL )
 		error("Impossivel abrir ficheiro");
-	int n = readInt(f);
-	if( n > MAX_PARCELS )
+	int nParcels = readInt(f);
+	if( nParcels > MAX_PARCELS )
 		error("Demasiadas parcelas no ficheiro");
-	for( i = 0 ; i < n ; i++ ) {
+	for( i = 0 ; i < nParcels ; i++ ) {
 		(*cartography)[i] = readParcel(f);
 	}
 	fclose(f);
-	return n;
+	return nParcels;
 }
 
 static int findLast(Cartography cartography, int n, int j, Identification id)
@@ -316,13 +316,13 @@ static int findLast(Cartography cartography, int n, int j, Identification id)
 	return n-1;
 }
 
-void showCartography(Cartography cartography, int n)
+void showCartography(Cartography cartography, int nParcels)
 {
 	int last;
 	Identification header = {"___FREGUESIA___", "___CONCELHO___", "___DISTRITO___"};
 	showHeader(header);
-	for( int i = 0 ; i < n ; i = last + 1 ) {
-		last = findLast(cartography, n, i, cartography[i].identification);
+	for( int i = 0 ; i < nParcels ; i = last + 1 ) {
+		last = findLast(cartography, nParcels, i, cartography[i].identification);
 		showParcel(i, cartography[i], last - i + 1);
 	}
 }
@@ -340,9 +340,9 @@ static bool checkArgs(int arg)
 	}
 }
 
-static bool checkPos(int pos, int n)
+static bool checkPos(int pos, int nParcels)
 {
-	if( 0 <= pos && pos < n )
+	if( 0 <= pos && pos < nParcels )
 		return true;
 	else {
 		printf("ERRO: POSICAO INEXISTENTE!\n");
@@ -351,9 +351,9 @@ static bool checkPos(int pos, int n)
 }
 
 // L
-static void commandListCartography(Cartography cartography, int n)
+static void commandListCartography(Cartography cartography, int nParcels)
 {
-	showCartography(cartography, n);
+	showCartography(cartography, nParcels);
 }
 
 
@@ -366,9 +366,9 @@ static int countVertices(Parcel p){
 	return totalEdginess;
 }
 
-static void commandMaximum(int pos, Cartography cartography, int n)
+static void commandMaximum(int pos, Cartography cartography, int nParcels)
 {
-	if( !checkArgs(pos) || !checkPos(pos, n) )
+	if( !checkArgs(pos) || !checkPos(pos, nParcels) )
 		return;
 	//TODO
 	int edgeIndex = pos++;
@@ -376,7 +376,7 @@ static void commandMaximum(int pos, Cartography cartography, int n)
 	Identification id = cartography[pos].identification;
 	/* Put here for less dynamic memory management */
 	int currentEdginess = 0;
-	for(;pos<n;pos++){
+	for(;pos<nParcels;pos++){
 		if(sameIdentification(cartography[pos].identification, id, 3) ){
 			currentEdginess = countVertices(cartography[pos]);
 			if(currentEdginess>maxEdginess){
@@ -393,29 +393,29 @@ static void commandMaximum(int pos, Cartography cartography, int n)
 }
 
 //X
-static void commandExtreme(Cartography cartography,int n){
-	n--;
-	int north=n,
-		east=n,
-		south=n,
-		west=n;
+static void commandExtreme(Cartography cartography,int nParcels){
+	nParcels--;
+	int north=nParcels,
+		east=nParcels,
+		south=nParcels,
+		west=nParcels;
 
-	while(n-->0){
+	while(nParcels-->0){
 		if(cartography[north].edge.boundingBox.topLeft.lat<
-				cartography[n].edge.boundingBox.topLeft.lat){
-			north = n;
+				cartography[nParcels].edge.boundingBox.topLeft.lat){
+			north = nParcels;
 		}
 		if(cartography[east].edge.boundingBox.bottomRight.lon<
-				cartography[n].edge.boundingBox.topLeft.lon){
-			east = n;
+				cartography[nParcels].edge.boundingBox.topLeft.lon){
+			east = nParcels;
 		}
 		if(cartography[south].edge.boundingBox.bottomRight.lat>
-				cartography[n].edge.boundingBox.bottomRight.lat){
-			south = n;
+				cartography[nParcels].edge.boundingBox.bottomRight.lat){
+			south = nParcels;
 		}
 		if(cartography[west].edge.boundingBox.topLeft.lon>
-				cartography[n].edge.boundingBox.bottomRight.lon){
-			west = n;
+				cartography[nParcels].edge.boundingBox.bottomRight.lon){
+			west = nParcels;
 		}
 	}
 	showIdentification(north, cartography[north].identification, 3);
@@ -431,9 +431,9 @@ static void commandExtreme(Cartography cartography,int n){
 	printf("[W]\n");
 }
 
-static void commandSummary(int pos, Cartography cartography, int n)
+static void commandSummary(int pos, Cartography cartography, int nParcels)
 {
-	if (!checkArgs(pos) || !checkPos(pos, n)) {
+	if (!checkArgs(pos) || !checkPos(pos, nParcels)) {
 		return;
 	}
 
@@ -451,7 +451,7 @@ static void commandSummary(int pos, Cartography cartography, int n)
 	printf("\n");
 }
 
-void interpreter(Cartography cartography, int n)
+void interpreter(Cartography cartography, int nParcels)
 {
 	String commandLine;
 	for(;;) {	// ciclo infinito
@@ -463,19 +463,23 @@ void interpreter(Cartography cartography, int n)
 		// printf("%c %lf %lf %lf\n", command, arg1, arg2, arg3);
 		switch( commandLine[0] ) {
 			case 'L': case 'l':	// listar
-				commandListCartography(cartography, n);
+				commandListCartography(cartography, nParcels);
 				break;
 
 			case 'M': case 'm':	// maximo
-				commandMaximum(arg1, cartography, n);
+				commandMaximum(arg1, cartography, nParcels);
 				break;
 
 			case 'X': case 'x':	// eXtremo
-				commandExtreme(cartography, n);
+				commandExtreme(cartography, nParcels);
 				break;
 
 			case 'R': case 'r':	// Resumo
-				commandSummary(arg1, cartography, n);
+				commandSummary(arg1, cartography, nParcels);
+				break;
+
+			case 'V': case 'v':	// Viagem
+				commandTravel(arg1, arg2, arg3, cartography, nParcels);
 				break;
 
 			case 'Z': case 'z':	// terminar
