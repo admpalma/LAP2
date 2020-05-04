@@ -395,41 +395,40 @@ static void commandMaximum(int pos, Cartography cartography, int n)
 //X
 static void commandExtreme(Cartography cartography,int n){
 	n--;
-	int maxLat=n,
-		maxLon=n,
-		minLat=n,
-		minLon=n;
+	int north=n,
+		east=n,
+		south=n,
+		west=n;
 
 	while(n-->0){
-		if(cartography[maxLat].edge.boundingBox.topLeft.lat<
+		if(cartography[north].edge.boundingBox.topLeft.lat<
 				cartography[n].edge.boundingBox.topLeft.lat){
-			maxLat = n;
+			north = n;
 		}
-		if(cartography[maxLon].edge.boundingBox.bottomRight.lon<=
+		if(cartography[east].edge.boundingBox.bottomRight.lon<
 				cartography[n].edge.boundingBox.topLeft.lon){
-			maxLon = n;
+			east = n;
 		}
-		if(cartography[minLat].edge.boundingBox.bottomRight.lat>
+		if(cartography[south].edge.boundingBox.bottomRight.lat>
 				cartography[n].edge.boundingBox.bottomRight.lat){
-			minLat = n;
+			south = n;
 		}
-		if(cartography[minLon].edge.boundingBox.topLeft.lon>
+		if(cartography[west].edge.boundingBox.topLeft.lon>
 				cartography[n].edge.boundingBox.bottomRight.lon){
-			minLon = n;
+			west = n;
 		}
 	}
-	showIdentification(maxLat, cartography[maxLat].identification, 3);
+	showIdentification(north, cartography[north].identification, 3);
 	printf("[N]\n");
 
-	showIdentification(maxLon, cartography[maxLon].identification, 3);
+	showIdentification(east, cartography[east].identification, 3);
 	printf("[E]\n");
 
-	showIdentification(minLat, cartography[minLat].identification, 3);
+	showIdentification(south, cartography[south].identification, 3);
 	printf("[S]\n");
 
-	showIdentification(minLon, cartography[minLon].identification, 3);
+	showIdentification(west, cartography[west].identification, 3);
 	printf("[W]\n");
-	/* printf("[%f,%f,%f,%f]\n",maxLat,maxLon,minLat,minLon); */
 }
 
 void interpreter(Cartography cartography, int n)
