@@ -211,7 +211,7 @@ static Ring readRing(FILE *f)
 	Ring r;
 	int i, n = readInt(f);
 	r.nVertexes = n;
-	r.vertexes = malloc(sizeof(Coordinates)*n);
+	r.vertexes = malloc(sizeof(Coordinates)*(unsigned int)n);
 	for( i = 0 ; i < n ; i++ ) {
 		r.vertexes[i] = readCoordinates(f);
 	}
@@ -266,7 +266,7 @@ static Parcel readParcel(FILE *f)
 	int i, n = readInt(f);
 	p.edge = readRing(f);
 	p.nHoles = n;
-	p.holes = malloc(sizeof(Ring)*n);
+	p.holes = malloc(sizeof(Ring)*(unsigned int)n);
 	for( i = 0 ; i < n ; i++ ) {
 		p.holes[i] = readRing(f);
 	}
@@ -338,7 +338,7 @@ int loadCartography(String fileName, Cartography *cartography)
 	if( f == NULL )
 		error("Impossivel abrir ficheiro");
 	int nParcels = readInt(f);
-	*cartography = malloc(sizeof(Parcel)*nParcels);
+	*cartography = malloc(sizeof(Parcel)*(unsigned int)nParcels);
 	for( i = 0 ; i < nParcels ; i++ ) {
 		(*cartography)[i] = readParcel(f);
 	}
@@ -411,7 +411,7 @@ static int searchMaxEdgeWithDir(int pos, Cartography cartography, int nParcels, 
 	*maxEdginess = countVertices(cartography[pos]);
 	int currentEdginess = 0;
 
-	for(;((pos<nParcels)&& dir == 1 || (pos>=nParcels)&& dir == -1) && (sameIdentification(cartography[pos].identification, id, 3)) ;pos+= dir){
+	for(;(((pos<nParcels) && dir == 1) || ((pos>=nParcels) && dir == -1)) && sameIdentification(cartography[pos].identification, id, 3) ;pos+= dir){
 		currentEdginess = countVertices(cartography[pos]);
 		if(currentEdginess>*maxEdginess){
 			*maxEdginess = currentEdginess;
