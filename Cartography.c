@@ -278,8 +278,21 @@ static void showParcel(int pos, Parcel p, int lenght)
 
 bool insideParcel(Coordinates c, Parcel p)
 {
-//TODO
-	return false;
+	if (!insideRing(c, p.edge))
+	{
+		return false;
+	}
+	else
+	{
+		for (int i = 0; i < p.nHoles; i++)
+		{
+			if (insideRing(c, p.holes[i]))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
 }
 
 bool adjacentParcels(Parcel a, Parcel b)
