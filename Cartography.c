@@ -385,7 +385,7 @@ static int searchMaxEdgeWithDir(int pos, Cartography cartography, int nParcels, 
 	*maxEdginess = countVertices(cartography[pos]);
 	int currentEdginess = 0;
 
-	for(;pos<nParcels && (sameIdentification(cartography[pos].identification, id, 3)) ;pos+= dir){
+	for(;((pos<nParcels)&& dir == 1 || (pos>=nParcels)&& dir == -1) && (sameIdentification(cartography[pos].identification, id, 3)) ;pos+= dir){
 		currentEdginess = countVertices(cartography[pos]);
 		if(currentEdginess>*maxEdginess){
 			*maxEdginess = currentEdginess;
@@ -401,8 +401,8 @@ static void commandMaximum(int pos, Cartography cartography, int nParcels)
 		return;
 	//TODO
 	int maxEdginess;
-	int lowerVert = searchMaxEdgeWithDir(pos,cartography,nParcels,-1,cartography[pos].identification, &maxEdginess);
-	int higherVer = searchMaxEdgeWithDir(pos,cartography,nParcels,1 ,cartography[pos].identification, &maxEdginess);
+	int lowerVert = searchMaxEdgeWithDir(pos,cartography,0,-1,cartography[pos].identification, &maxEdginess);
+	int higherVer = searchMaxEdgeWithDir(pos,cartography,nParcels, 1,cartography[pos].identification, &maxEdginess);
 	int edgeIndex = lowerVert < higherVer? higherVer:lowerVert;
 
 	/* Put here for less dynamic memory management */
