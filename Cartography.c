@@ -197,8 +197,10 @@ static Rectangle calculateBoundingBox(Coordinates vs[], int n)
 bool insideRectangle(Coordinates c, Rectangle r)
 {
 	//TODO Done?
-	return !(r.topLeft.lat < c.lat ||r.topLeft.lon < c.lon ||
-			r.bottomRight.lat > c.lat || r.bottomRight.lon > c.lon);
+	return c.lat >= r.bottomRight.lat &&
+		c.lat <= r.topLeft.lat &&
+		c.lon >= r.topLeft.lon &&
+		c.lon <= r.bottomRight.lon;
 }
 
 
