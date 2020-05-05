@@ -243,7 +243,16 @@ bool insideRing(Coordinates c, Ring r)
 
 bool adjacentRings(Ring a, Ring b)
 {
-//TODO
+	for (int i = 0; i < a.nVertexes; i++)
+	{
+		for (int j = 0; j < b.nVertexes; j++)
+		{
+			if (sameCoordinates(a.vertexes[i], b.vertexes[j]))
+			{
+				return true;
+			}
+		}
+	}
 	return false;
 }
 
@@ -295,10 +304,27 @@ bool insideParcel(Coordinates c, Parcel p)
 	}
 }
 
+bool isAdjacentRingsList(Ring a, Ring* list, int num)
+{
+
+	while (num > 0) {
+		if (adjacentRings(a, list[--num]))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 bool adjacentParcels(Parcel a, Parcel b)
 {
-	//TODO
-		return false;
+	if (adjacentRings(a.edge, b.edge))
+	{
+		return true;
+	}
+	else {
+		return isAdjacentRingsList(a.edge, b.holes, b.nHoles) || isAdjacentRingsList(b.edge, a.holes, a.nHoles);
+	}
 }
 
 
@@ -585,6 +611,46 @@ static void commandParcels(double lat, double lon, Cartography cartography, int 
 	printf("FORA DO MAPA\n");
 }
 
+// Writes the indexes of Parcels adjacent to pos in adjancent, leaving -1 in it's last position
+// Returns the number of adjacent Parcels found
+static int adjacentTo(int pos, Cartography cartography, int nParcels, int* adjacent)
+{
+	int counter = 0;
+	for (int i = 0; i < nParcels; i++)
+	{
+		if (i != pos)
+		{
+			if (adjacentParcels(cartography[pos], cartography[i]))
+			{
+				adjacent[counter++] = i;
+			}
+		}
+	}
+	adjacent[counter] = -1;
+	return counter;
+}
+
+static void commandAdjacencies(int pos, Cartography cartography, int nParcels)
+{
+	if (!checkArgs(pos) || !checkPos(pos, nParcels)) {
+		return;
+	}
+
+	int adjacent[nParcels];
+
+	if (adjacentTo(pos, cartography, nParcels, adjacent))
+	{
+		for (int i = 0; adjacent[i] != -1; i++) {
+			showIdentification(pos, cartography[adjacent[i]].identification, 3);
+			printf("\n");
+		}
+	}
+	else
+	{
+		printf("NAO HA ADJACENCIAS\n");
+	}
+}
+
 void interpreter(Cartography cartography, int nParcels)
 {
 	String commandLine;
@@ -630,6 +696,10 @@ void interpreter(Cartography cartography, int nParcels)
 
 			case 'P': case 'p':	// Parcelas
 				commandParcels(arg1, arg2, cartography, nParcels);
+				break;
+
+			case 'A': case 'a':	// Adjacencias
+				commandAdjacencies((int)arg1, cartography, nParcels);
 				break;
 
 			case 'Z': case 'z':	// terminar
