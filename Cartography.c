@@ -504,6 +504,37 @@ static void commandHowMany(int pos, Cartography cartography, int nParcels)
 	} while (i > 0);
 }
 
+// Returns new length of sv
+int removeDuplicatesSV(StringVector sv, int length)
+{
+	if (length == 0 || length == 1) 
+	{
+		return length;
+	}
+
+	int newLength = 0;
+	for (int i = 1; i < length; i++)
+	{
+		if (strcmp((char*)sv[i - 1], (char*)sv[i]))
+		{
+			strcpy((char*)sv[newLength++], (char*)sv[i - 1]);
+		}
+	}
+	return newLength;
+}
+
+static void commandCounties(Cartography cartography, int nParcels)
+{
+	StringVector counties; //TODO memory hog
+	for (int i = 0; i < nParcels; i++)
+	{
+		strcpy(counties[i], cartography[i].identification.concelho);
+	}
+	qsort(counties, nParcels, sizeof(String), strcmp);
+	int length = removeDuplicatesSV(counties, nParcels);
+	showStringVector(counties, length);
+}
+
 void interpreter(Cartography cartography, int nParcels)
 {
 	String commandLine;
@@ -537,6 +568,10 @@ void interpreter(Cartography cartography, int nParcels)
 
 			case 'Q': case 'q':	// Quantos
 				commandHowMany((int)arg1, cartography, nParcels);
+				break;
+
+			case 'C': case 'c':	// Concelhos
+				commandCounties(cartography, nParcels);
 				break;
 
 			case 'Z': case 'z':	// terminar
