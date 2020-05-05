@@ -380,27 +380,32 @@ static int countVertices(Parcel p){
 	return totalEdginess;
 }
 
+static int searchMaxEdgeWithDir(int pos, Cartography cartography, int nParcels, int dir,Identification id,int* maxEdginess){
+	int edgeIndex = pos;
+	*maxEdginess = countVertices(cartography[pos]);
+	int currentEdginess = 0;
+
+	for(;pos<nParcels && (sameIdentification(cartography[pos].identification, id, 3)) ;pos+= dir){
+		currentEdginess = countVertices(cartography[pos]);
+		if(currentEdginess>*maxEdginess){
+			*maxEdginess = currentEdginess;
+			edgeIndex = pos;
+		}
+	}
+	return edgeIndex;
+}
+
 static void commandMaximum(int pos, Cartography cartography, int nParcels)
 {
 	if( !checkArgs(pos) || !checkPos(pos, nParcels) )
 		return;
 	//TODO
-	int edgeIndex = pos++;
-	int maxEdginess = countVertices(cartography[pos]);
-	Identification id = cartography[pos].identification;
+	int maxEdginess;
+	int lowerVert = searchMaxEdgeWithDir(pos,cartography,nParcels,-1,cartography[pos].identification, &maxEdginess);
+	int higherVer = searchMaxEdgeWithDir(pos,cartography,nParcels,1 ,cartography[pos].identification, &maxEdginess);
+	int edgeIndex = lowerVert < higherVer? higherVer:lowerVert;
+
 	/* Put here for less dynamic memory management */
-	int currentEdginess = 0;
-	for(;pos<nParcels;pos++){
-		if(sameIdentification(cartography[pos].identification, id, 3) ){
-			currentEdginess = countVertices(cartography[pos]);
-			if(currentEdginess>maxEdginess){
-				maxEdginess = currentEdginess;
-				edgeIndex = pos;
-			}
-		}else{
-			break;
-		}
-	}
 	showIdentification(edgeIndex, cartography[edgeIndex].identification, 3);
 	showValue(maxEdginess);
 
@@ -522,7 +527,7 @@ static void commandHowMany(int pos, Cartography cartography, int nParcels)
 // Returns new length of sv
 int removeDuplicatesSV(StringVector sv, int length)
 {
-	if (length == 0 || length == 1) 
+	if (length == 0 || length == 1)
 	{
 		return length;
 	}
