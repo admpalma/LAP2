@@ -523,6 +523,13 @@ int removeDuplicatesSV(StringVector sv, int length)
 	return newLength;
 }
 
+static void sortedDisplayNames(StringVector names, int nParcels)
+{
+	qsort(names, (unsigned int)nParcels, sizeof(String), strcmp);
+	int length = removeDuplicatesSV(names, nParcels);
+	showStringVector(names, length);
+}
+
 static void commandCounties(Cartography cartography, int nParcels)
 {
 	StringVector counties; //TODO memory hog
@@ -530,9 +537,17 @@ static void commandCounties(Cartography cartography, int nParcels)
 	{
 		strcpy(counties[i], cartography[i].identification.concelho);
 	}
-	qsort(counties, nParcels, sizeof(String), strcmp);
-	int length = removeDuplicatesSV(counties, nParcels);
-	showStringVector(counties, length);
+	sortedDisplayNames(counties, nParcels);
+}
+
+static void commandDistricts(Cartography cartography, int nParcels)
+{
+	StringVector districts; //TODO memory hog
+	for (int i = 0; i < nParcels; i++)
+	{
+		strcpy(districts[i], cartography[i].identification.distrito);
+	}
+	sortedDisplayNames(districts, nParcels);
 }
 
 void interpreter(Cartography cartography, int nParcels)
@@ -572,6 +587,10 @@ void interpreter(Cartography cartography, int nParcels)
 
 			case 'C': case 'c':	// Concelhos
 				commandCounties(cartography, nParcels);
+				break;
+
+			case 'D': case 'd':	// Distritos
+				commandDistricts(cartography, nParcels);
 				break;
 
 			case 'Z': case 'z':	// terminar
