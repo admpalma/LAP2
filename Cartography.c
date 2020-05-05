@@ -197,8 +197,10 @@ static Rectangle calculateBoundingBox(Coordinates vs[], int n)
 bool insideRectangle(Coordinates c, Rectangle r)
 {
 	//TODO Done?
-	return !(r.topLeft.lat < c.lat ||r.topLeft.lon < c.lon ||
-			r.bottomRight.lat > c.lat || r.bottomRight.lon > c.lon);
+	return c.lat >= r.bottomRight.lat &&
+		c.lat <= r.topLeft.lat &&
+		c.lon >= r.topLeft.lon &&
+		c.lon <= r.bottomRight.lon;
 }
 
 
@@ -276,8 +278,21 @@ static void showParcel(int pos, Parcel p, int lenght)
 
 bool insideParcel(Coordinates c, Parcel p)
 {
-//TODO
-	return false;
+	if (!insideRing(c, p.edge))
+	{
+		return false;
+	}
+	else
+	{
+		for (int i = 0; i < p.nHoles; i++)
+		{
+			if (insideRing(c, p.holes[i]))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
 }
 
 bool adjacentParcels(Parcel a, Parcel b)
@@ -550,6 +565,21 @@ static void commandDistricts(Cartography cartography, int nParcels)
 	sortedDisplayNames(districts, nParcels);
 }
 
+static void commandParcels(double lat, double lon, Cartography cartography, int nParcels)
+{
+	Coordinates vertex = { lat, lon };
+	for (int i = 0; i < nParcels; i++)
+	{
+		if (insideParcel(vertex, cartography[i]))
+		{
+			showIdentification(i, cartography[i].identification, 3);
+			printf("\n");
+			return;
+		}
+	}
+	printf("FORA DO MAPA\n");
+}
+
 void interpreter(Cartography cartography, int nParcels)
 {
 	String commandLine;
@@ -591,6 +621,10 @@ void interpreter(Cartography cartography, int nParcels)
 
 			case 'D': case 'd':	// Distritos
 				commandDistricts(cartography, nParcels);
+				break;
+
+			case 'P': case 'p':	// Parcelas
+				commandParcels(arg1, arg2, cartography, nParcels);
 				break;
 
 			case 'Z': case 'z':	// terminar
