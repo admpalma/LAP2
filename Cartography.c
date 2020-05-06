@@ -643,7 +643,7 @@ static void commandAdjacencies(int pos, Cartography cartography, int nParcels)
 
 	int adjacent[nParcels];
 
-	if (adjacentTo(pos, cartography, nParcels, adjacent))
+	if (adjacentTo(pos, cartography, nParcels, adjacent) > 0)
 	{
 		for (int i = 0; adjacent[i] != -1; i++) {
 			showIdentification(adjacent[i], cartography[adjacent[i]].identification, 3);
