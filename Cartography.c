@@ -646,7 +646,7 @@ static void commandAdjacencies(int pos, Cartography cartography, int nParcels)
 	if (adjacentTo(pos, cartography, nParcels, adjacent))
 	{
 		for (int i = 0; adjacent[i] != -1; i++) {
-			showIdentification(pos, cartography[adjacent[i]].identification, 3);
+			showIdentification(adjacent[i], cartography[adjacent[i]].identification, 3);
 			printf("\n");
 		}
 	}
