@@ -318,13 +318,9 @@ bool isAdjacentRingsList(Ring a, Ring* list, int num)
 
 bool adjacentParcels(Parcel a, Parcel b)
 {
-	if (adjacentRings(a.edge, b.edge))
-	{
-		return true;
-	}
-	else {
-		return isAdjacentRingsList(a.edge, b.holes, b.nHoles) || isAdjacentRingsList(b.edge, a.holes, a.nHoles);
-	}
+		return (adjacentRings(a.edge,b.edge))||
+			(isAdjacentRingsList(a.edge, b.holes, b.nHoles) ||
+			 isAdjacentRingsList(b.edge, a.holes, a.nHoles));
 }
 
 
