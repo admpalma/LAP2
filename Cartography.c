@@ -33,10 +33,10 @@ COMENTÁRIO
 
 /* STRING -------------------------------------- */
 
-static void showStringVector(StringVector sv, int n) {
+static void showStringVector(String** sv, int n) {
 	int i;
 	for( i = 0 ; i < n ; i++ ) {
-		printf("%s\n", sv[i]);
+		printf("%s\n", *sv[i]);
 	}
 }
 
@@ -551,7 +551,7 @@ static void commandHowMany(int pos, Cartography cartography, int nParcels)
 }
 
 // Returns new length of sv
-int removeDuplicatesSV(StringVector sv, int length)
+int removeDuplicatesSV(String** sv, int length)
 {
 	if (length == 0 || length == 1)
 	{
@@ -561,37 +561,42 @@ int removeDuplicatesSV(StringVector sv, int length)
 	int newLength = 0;
 	for (int i = 1; i < length; i++)
 	{
-		if (strcmp((char*)sv[i - 1], (char*)sv[i]))
+		if (strcmp((char*)*sv[i - 1], (char*)*sv[i]))
 		{
-			strcpy((char*)sv[newLength++], (char*)sv[i - 1]);
+			sv[newLength++] = sv[i - 1];
 		}
 	}
 	return newLength;
 }
 
-static void sortedDisplayNames(StringVector names, int nParcels)
+static int strcmpPoint(const void* vec1, const void* vec2) {
+	return strcmp(*(char**)vec1, *(char**)vec2);
+}
+
+static void sortedDisplayNames(String** names, int nParcels)
 {
-	qsort(names, (unsigned int)nParcels, sizeof(String), strcmp);
+	qsort(names, (unsigned int)nParcels, sizeof(String*), strcmpPoint);
 	int length = removeDuplicatesSV(names, nParcels);
 	showStringVector(names, length);
 }
 
+//C
 static void commandCounties(Cartography cartography, int nParcels)
 {
-	StringVector counties; //TODO memory hog
+	String* counties[nParcels];
 	for (int i = 0; i < nParcels; i++)
 	{
-		strcpy(counties[i], cartography[i].identification.concelho);
+		counties[i] = &cartography[i].identification.concelho;
 	}
 	sortedDisplayNames(counties, nParcels);
 }
 
 static void commandDistricts(Cartography cartography, int nParcels)
 {
-	StringVector districts; //TODO memory hog
+	String* districts[nParcels];
 	for (int i = 0; i < nParcels; i++)
 	{
-		strcpy(districts[i], cartography[i].identification.distrito);
+		districts[i] = &cartography[i].identification.distrito;
 	}
 	sortedDisplayNames(districts, nParcels);
 }
