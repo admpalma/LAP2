@@ -654,6 +654,186 @@ static void commandAdjacencies(int pos, Cartography cartography, int nParcels)
 	}
 }
 
+int inArray(int* array, int size, int elem)
+{
+	for (int i = 0; i < size; i++)
+	{
+		if (array[i] == elem)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+// Returns new length of sv
+int removeDuplicatesIntArr(int* arr, int length)
+{
+	if (length == 0 || length == 1)
+	{
+		return length;
+	}
+
+	int newLength = 0;
+	arr[newLength++] = arr[0];
+	for (int i = 1; i < length; i++)
+	{
+		if (arr[i - 1] != arr[i])
+		{
+			arr[newLength++] = arr[i];
+		}
+	}
+	return newLength;
+}
+
+static int compareInt(const void* a, const void* b) {
+	const int* pa = (const int*)a;
+	const int* pb = (const int*)b;
+	return *pa - *pb;
+}
+
+static int sortedRemoveDuplicatesIntArr(int* arr, int length)
+{
+	qsort(arr, (unsigned int)length, sizeof(int), compareInt);
+	printf("qsor v ");
+	for (size_t j = 0; j < length; j++)
+	{
+		printf("%d ", arr[j]);
+	}
+	printf("\n");
+	return removeDuplicatesIntArr(arr, length);
+}
+
+
+static int removeFromIntArr(int* toRemove, int toRemoveLen, int* arr, int arrLen)
+{
+	int newLen = 0;
+	for (int i = 0; i < arrLen; i++)
+	{
+		if (!inArray(toRemove, toRemoveLen, arr[i]))
+		{
+			arr[newLen++] = arr[i];
+		}
+	}
+
+	return newLen;
+}
+
+static int crossingsBetween(int pos1, int pos2, Cartography cartography, int nParcels)
+{
+	if (pos1 == pos2) {
+		return 0;
+	}
+	else
+	{
+		int visited[nParcels];
+		visited[0] = pos1;
+		int totalVisited = 1;
+		int crossings = 1;
+		int* visiting = malloc(sizeof(int) * (unsigned int)nParcels);
+		int* adjacencies[nParcels];
+		int adjacenciesSizes[nParcels];
+		int allocatedAdjacencies = 0;
+		int visitingInUse = adjacentTo(pos1, cartography, nParcels, visiting);
+		while (totalVisited < nParcels && visitingInUse > 0)
+		{
+			//printf("%d %d\n", totalVisited, visitingInUse);
+			if (inArray(visiting, visitingInUse, pos2))
+			{
+				free(visiting);
+				for (int i = 0; i < allocatedAdjacencies; i++)
+				{
+					free(adjacencies[i]);
+				}
+				return crossings;
+			}
+			else
+			{
+				crossings++;
+				memcpy(&visited[totalVisited], visiting, sizeof(int) * (unsigned int) visitingInUse);
+				totalVisited += visitingInUse;
+				printf("visite ");
+				for (size_t j = 0; j < totalVisited; j++)
+				{
+					printf("%d ", visited[j]);
+				}
+				printf("\n");
+				int tempVisitingInUseSize = 0;
+				for (int i = 0; i < visitingInUse; i++)
+				{
+					if (i >= allocatedAdjacencies)
+					{
+						adjacencies[i] = malloc(sizeof(int) * (unsigned int)nParcels);
+						allocatedAdjacencies++;
+					}
+					adjacenciesSizes[i] = adjacentTo(visiting[i], cartography, nParcels, adjacencies[i]);
+					printf("     a ");
+					for (size_t j = 0; j < adjacenciesSizes[i]; j++)
+					{
+						printf("%d ", adjacencies[i][j]);
+					}
+					printf("\n");
+					tempVisitingInUseSize += adjacenciesSizes[i];
+				}
+				if (!visitingInUse == 0)
+				{
+					visiting = realloc(visiting, sizeof(int) * (unsigned int)tempVisitingInUseSize);
+					for (int i = 0, j = 0; i < tempVisitingInUseSize; i += adjacenciesSizes[j++])
+					{
+						memcpy(&visiting[i], adjacencies[j], sizeof(int) * (unsigned int)adjacenciesSizes[j]);
+					}
+					printf("prev v ");
+					for (size_t j = 0; j < tempVisitingInUseSize; j++)
+					{
+						printf("%d ", visiting[j]);
+					}
+					printf("\n");
+					tempVisitingInUseSize = sortedRemoveDuplicatesIntArr(visiting, tempVisitingInUseSize);
+					printf("sort v ");
+					for (size_t j = 0; j < tempVisitingInUseSize; j++)
+					{
+						printf("%d ", visiting[j]);
+					}
+					printf("\n");
+					visitingInUse = removeFromIntArr(visited, totalVisited, visiting, tempVisitingInUseSize);
+					printf(" pos v ");
+					for (size_t j = 0; j < visitingInUse; j++)
+					{
+						printf("%d ", visiting[j]);
+					}
+					printf("\n");
+					if (!visitingInUse == 0)
+					{
+						visiting = realloc(visiting, sizeof(int) * (unsigned int)visitingInUse);
+					}
+				}
+			}
+		}
+		free(visiting);
+		for (int i = 0; i < allocatedAdjacencies; i++)
+		{
+			free(adjacencies[i]);
+		}
+		return -1;
+	}
+}
+
+static void commandBorders(int pos1, int pos2, Cartography cartography, int nParcels)
+{
+	if (!checkArgs(pos1) || !checkPos(pos1, nParcels)
+		|| !checkArgs(pos2) || !checkPos(pos2, nParcels)) {
+		return;
+	}
+
+	int crossings = crossingsBetween(pos1, pos2, cartography, nParcels);
+	if (crossings < 0) {
+		printf("NAO HA CAMINHO\n");
+	}
+	else {
+		printf("%d\n", crossings);
+	}
+}
+
 void interpreter(Cartography cartography, int nParcels)
 {
 	String commandLine;
@@ -703,6 +883,10 @@ void interpreter(Cartography cartography, int nParcels)
 
 			case 'A': case 'a':	// Adjacencias
 				commandAdjacencies((int)arg1, cartography, nParcels);
+				break;
+
+			case 'F': case 'f':	// Fronteiras
+				commandBorders((int)arg1, (int)arg2, cartography, nParcels);
 				break;
 
 			case 'Z': case 'z':	// terminar
