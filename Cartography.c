@@ -556,9 +556,10 @@ int removeDuplicatesSV(String** sv, int length)
 	}
 
 	int newLength = 0;
+	sv[newLength++] = sv[0];
 	for (int i = 1; i < length; i++)
 	{
-		if (strcmp((char*)*sv[i - 1], (char*)*sv[i]))
+		if (strcmp((char*)*sv[i - 1], (char*)*sv[i]) != 0)
 		{
 			sv[newLength++] = sv[i - 1];
 		}
