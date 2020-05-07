@@ -245,13 +245,14 @@ bool adjacentRings(Ring a, Ring b)
 {
 	for (int i = 0; i < a.nVertexes; i++)
 	{
-		for (int j = 0; j < b.nVertexes; j++)
-		{
-			if (sameCoordinates(a.vertexes[i], b.vertexes[j]))
+		if( insideRectangle(a.vertexes[i], b.boundingBox) )
+			for (int j = 0; j < b.nVertexes; j++)
 			{
-				return true;
+				if (sameCoordinates(a.vertexes[i], b.vertexes[j]))
+				{
+					return true;
+				}
 			}
-		}
 	}
 	return false;
 }
