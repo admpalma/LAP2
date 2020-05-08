@@ -798,73 +798,86 @@ static void commandBorders(int pos1, int pos2, Cartography cartography, int nPar
 	}
 }
 
-static void commandPartitions(double maxDistance, Cartography cartography ,int nParcels){
+static bool isInRangeOfAny(int* array, int size, int pos, int distance, Cartography cartography)
+{
+	for (int i = 0; i <= size; i++)
+	{
+		if (haversine(cartography[array[i]].edge.vertexes[0], cartography[pos].edge.vertexes[0]) < distance)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+static void commandPartitions(int maxDistance, Cartography cartography, int nParcels){
 	if (!checkArgs(maxDistance))
 		return;
 
-	int* allParts[nParcels];
-	int numPerPart[nParcels];
-	int numParts = 0;
-	int remaining = nParcels;
-	for(int i = 0;i<nParcels;i++){//Cartography parcel
-		/* printf("Parcel %d\n",i); */
-		bool gotIn = false;
-		for(int j = 0;j<numParts;j++){//
-			/* printf("Part %d\n",j); */
-			for(int k = 0;k<numPerPart[j];k++){
-				/* printf("Part inside Part %d\n",k); */
-				double distance = haversine(cartography[i].edge.vertexes[0], cartography[allParts[j][k]].edge.vertexes[0]);
-				if(distance<maxDistance){
-					allParts[j][numPerPart[j]++] = i;
-					gotIn = true;
-					break;
+	int totalRemaining = nParcels;
+	int remaining[totalRemaining];
+	for (int i = 0; i < totalRemaining; i++)
+	{
+		remaining[i] = i;
+	}
+	int* subsets[nParcels];
+	int subsetSize[nParcels];
+	int numSubsets = 0;
+
+	while (totalRemaining > 0)
+	{
+		// Pick a Parcel to start searching from
+		int toRemove[1] = { remaining[0] };
+		totalRemaining = removeFromIntArr(toRemove, 1, remaining, totalRemaining);
+
+		if (totalRemaining == 0) {
+			subsets[numSubsets] = malloc(sizeof(int));
+		} else {
+			subsets[numSubsets] = malloc((unsigned int)totalRemaining * sizeof(int));
+		}
+
+		subsets[numSubsets][0] = toRemove[0];
+		subsetSize[numSubsets] = 1;
+		int oldSize = 0;
+		while (subsetSize[numSubsets] != oldSize) {
+			oldSize = subsetSize[numSubsets];
+			for (int i = 0; i < totalRemaining; i++)
+			{
+				if (isInRangeOfAny(subsets[numSubsets], oldSize, remaining[i], maxDistance, cartography))
+				{
+					subsets[numSubsets][subsetSize[numSubsets]++] = remaining[i];
 				}
 			}
+			totalRemaining = removeFromIntArr(subsets[numSubsets] + oldSize, subsetSize[numSubsets] - oldSize, remaining, totalRemaining);
 		}
-		if(!gotIn){
-			numPerPart[numParts] = 1;
-			allParts[numParts] = malloc(sizeof(int)*remaining);
-			allParts[numParts++][0] = i;
-		}
+		numSubsets++;
 	}
-	for(int i = 0;i<numParts;i++){
-		for(int j = 0;j<numParts;j++){
-			if(i == j) j++;
-			for(int k = 0;k<numPerPart[i];k++){
-				for(int m = 0;m<numPerPart[j];m++){
-					if (allParts[i][k] == allParts[j][m]){
-						memcpy(&allParts[i][numPerPart[i]], allParts[j], sizeof(int)*numPerPart[j]);
-						numPerPart[i] = sortedRemoveDuplicatesIntArr(allParts[i], numPerPart[i]+numPerPart[j]);
-						numPerPart[j] = 0;
-					}
-				}
-			}
-		}
-	}
-	for(int i = 0;i<numParts;i++){
-		printf("Num of elements: %d\n",numPerPart[i]);
-		if (numPerPart[i] == 1)
+
+	// Print and free
+	for (int i = 0; i < numSubsets; i++) {
+		if (subsetSize[i] == 1)
 		{
-			printf("%d", allParts[i][0]);
+			printf("%d", subsets[i][0]);
 		}
 		else
 		{
-			for (int j = 1; j < numPerPart[i]; j++) {
-				printf("%d", allParts[i][j - 1]);
+			for (int j = 1; j < subsetSize[i]; j++) {
+				printf("%d", subsets[i][j - 1]);
 				int skipped = 0;
-				while (allParts[i][j - 1] == allParts[i][j] - 1)
+				while (subsets[i][j + skipped - 1] == subsets[i][j + skipped] - 1 && skipped + j < subsetSize[i])
 				{
 					skipped++;
 				}
 				if (skipped > 0) {
-					printf("-%d", allParts[i][j]);
-					j += skipped - 1;
+					j += skipped;
+					printf("-%d", subsets[i][j - 1]);
 				}
-				if (j + 1 < numPerPart[i])
+				if (j < subsetSize[i])
 				{
 					printf(" ");
 				}
 			}
+			free(subsets[i]);
 		}
 		printf("\n");
 	}
@@ -925,7 +938,7 @@ void interpreter(Cartography cartography, int nParcels)
 				commandBorders((int)arg1, (int)arg2, cartography, nParcels);
 				break;
 			case 'T': case 't':
-				commandPartitions((double)arg1,cartography,nParcels);
+				commandPartitions((int)arg1,cartography,nParcels);
 				break;
 			case 'Z': case 'z':	// terminar
 				printf("Fim de execucao! Volte sempre.\n");
