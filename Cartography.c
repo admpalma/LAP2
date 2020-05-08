@@ -436,30 +436,31 @@ static void commandMaximum(int pos, Cartography cartography, int nParcels)
 
 //X
 static void commandExtreme(Cartography cartography,int nParcels){
-	nParcels--;
-	int north=nParcels,
-		east=nParcels,
-		south=nParcels,
-		west=nParcels;
-
-	while(nParcels-->0){
-		if(cartography[north].edge.boundingBox.topLeft.lat<
-				cartography[nParcels].edge.boundingBox.topLeft.lat){
-			north = nParcels;
+	int north = 0,
+		east = 0,
+		south = 0,
+		west = 0;
+	
+	for (int i = 0; i < nParcels; i++)
+	{
+		if (cartography[north].edge.boundingBox.topLeft.lat <
+			cartography[i].edge.boundingBox.topLeft.lat) {
+			north = i;
 		}
-		if(cartography[east].edge.boundingBox.bottomRight.lon<
-				cartography[nParcels].edge.boundingBox.topLeft.lon){
-			east = nParcels;
+		if (cartography[east].edge.boundingBox.bottomRight.lon <
+			cartography[i].edge.boundingBox.topLeft.lon) {
+			east = i;
 		}
-		if(cartography[south].edge.boundingBox.bottomRight.lat>
-				cartography[nParcels].edge.boundingBox.bottomRight.lat){
-			south = nParcels;
+		if (cartography[south].edge.boundingBox.bottomRight.lat >
+			cartography[i].edge.boundingBox.bottomRight.lat) {
+			south = i;
 		}
-		if(cartography[west].edge.boundingBox.topLeft.lon>
-				cartography[nParcels].edge.boundingBox.bottomRight.lon){
-			west = nParcels;
+		if (cartography[west].edge.boundingBox.topLeft.lon >
+			cartography[i].edge.boundingBox.bottomRight.lon) {
+			west = i;
 		}
 	}
+
 	showIdentification(north, cartography[north].identification, 3);
 	printf("[N]\n");
 
