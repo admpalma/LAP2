@@ -462,16 +462,16 @@ static void commandExtreme(Cartography cartography,int nParcels){
 	}
 
 	showIdentification(north, cartography[north].identification, 3);
-	printf("[N]\n");
+	printf(" [N]\n");
 
 	showIdentification(east, cartography[east].identification, 3);
-	printf("[E]\n");
+	printf(" [E]\n");
 
 	showIdentification(south, cartography[south].identification, 3);
-	printf("[S]\n");
+	printf(" [S]\n");
 
 	showIdentification(west, cartography[west].identification, 3);
-	printf("[W]\n");
+	printf(" [W]\n");
 }
 
 static void commandSummary(int pos, Cartography cartography, int nParcels)
@@ -511,7 +511,7 @@ static void commandTravel(double lat, double lon, int pos, Cartography cartograp
 		}
 	}
 
-	printf("%f\n", minDistance);
+	printf(" %f\n", minDistance);
 }
 
 static void commandHowMany(int pos, Cartography cartography, int nParcels)
@@ -795,7 +795,7 @@ static void commandBorders(int pos1, int pos2, Cartography cartography, int nPar
 		printf("NAO HA CAMINHO\n");
 	}
 	else {
-		printf("%d\n", crossings);
+		printf(" %d\n", crossings);
 	}
 }
 
@@ -856,6 +856,7 @@ static void commandPartitions(int maxDistance, Cartography cartography, int nPar
 
 	// Print and free
 	for (int i = 0; i < numSubsets; i++) {
+		printf(" ");
 		if (subsetSize[i] == 1)
 		{
 			printf("%d", subsets[i][0]);
