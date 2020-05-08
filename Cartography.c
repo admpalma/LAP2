@@ -561,7 +561,7 @@ int removeDuplicatesSV(String** sv, int length)
 	{
 		if (strcmp((char*)*sv[i - 1], (char*)*sv[i]) != 0)
 		{
-			sv[newLength++] = sv[i - 1];
+			sv[newLength++] = sv[i];
 		}
 	}
 	return newLength;
@@ -654,7 +654,7 @@ static void commandAdjacencies(int pos, Cartography cartography, int nParcels)
 	}
 }
 
-int inArray(int* array, int size, int elem)
+bool inArray(int* array, int size, int elem)
 {
 	for (int i = 0; i < size; i++)
 	{
@@ -695,12 +695,6 @@ static int compareInt(const void* a, const void* b) {
 static int sortedRemoveDuplicatesIntArr(int* arr, int length)
 {
 	qsort(arr, (unsigned int)length, sizeof(int), compareInt);
-	printf("qsor v ");
-	for (size_t j = 0; j < length; j++)
-	{
-		printf("%d ", arr[j]);
-	}
-	printf("\n");
 	return removeDuplicatesIntArr(arr, length);
 }
 
@@ -726,95 +720,65 @@ static int crossingsBetween(int pos1, int pos2, Cartography cartography, int nPa
 	}
 	else
 	{
+		int crossings = 1;
 		int visited[nParcels];
 		visited[0] = pos1;
 		int totalVisited = 1;
-		int crossings = 1;
 		int* visiting = malloc(sizeof(int) * (unsigned int)nParcels);
+		int visitingInUse = adjacentTo(pos1, cartography, nParcels, visiting);
 		int* adjacencies[nParcels];
 		int adjacenciesSizes[nParcels];
 		int allocatedAdjacencies = 0;
-		int visitingInUse = adjacentTo(pos1, cartography, nParcels, visiting);
-		while (totalVisited < nParcels && visitingInUse > 0)
+		while (visitingInUse > 0 && !inArray(visiting, visitingInUse, pos2))
 		{
-			//printf("%d %d\n", totalVisited, visitingInUse);
-			if (inArray(visiting, visitingInUse, pos2))
+			// Update visited
+			crossings++;
+			memcpy(&visited[totalVisited], visiting, sizeof(int) * (unsigned int) visitingInUse);
+			totalVisited += visitingInUse;
+
+			// Grab new adjacencies
+			int tempVisitingSize = 0;
+			for (int i = 0; i < visitingInUse; i++)
 			{
-				free(visiting);
-				for (int i = 0; i < allocatedAdjacencies; i++)
+				// Allocate more memory if necessary
+				if (i >= allocatedAdjacencies)
 				{
-					free(adjacencies[i]);
+					adjacencies[i] = malloc(sizeof(int) * (unsigned int)nParcels);
+					allocatedAdjacencies++;
 				}
-				return crossings;
+				adjacenciesSizes[i] = adjacentTo(visiting[i], cartography, nParcels, adjacencies[i]);
+				tempVisitingSize += adjacenciesSizes[i];
 			}
-			else
+
+			// Merge adjacencies for the next visiting level
+			visiting = realloc(visiting, sizeof(int) * (unsigned int)tempVisitingSize);
+			for (int i = 0, j = 0; i < tempVisitingSize; i += adjacenciesSizes[j++])
 			{
-				crossings++;
-				memcpy(&visited[totalVisited], visiting, sizeof(int) * (unsigned int) visitingInUse);
-				totalVisited += visitingInUse;
-				printf("visite ");
-				for (size_t j = 0; j < totalVisited; j++)
-				{
-					printf("%d ", visited[j]);
-				}
-				printf("\n");
-				int tempVisitingInUseSize = 0;
-				for (int i = 0; i < visitingInUse; i++)
-				{
-					if (i >= allocatedAdjacencies)
-					{
-						adjacencies[i] = malloc(sizeof(int) * (unsigned int)nParcels);
-						allocatedAdjacencies++;
-					}
-					adjacenciesSizes[i] = adjacentTo(visiting[i], cartography, nParcels, adjacencies[i]);
-					printf("     a ");
-					for (size_t j = 0; j < adjacenciesSizes[i]; j++)
-					{
-						printf("%d ", adjacencies[i][j]);
-					}
-					printf("\n");
-					tempVisitingInUseSize += adjacenciesSizes[i];
-				}
-				if (!visitingInUse == 0)
-				{
-					visiting = realloc(visiting, sizeof(int) * (unsigned int)tempVisitingInUseSize);
-					for (int i = 0, j = 0; i < tempVisitingInUseSize; i += adjacenciesSizes[j++])
-					{
-						memcpy(&visiting[i], adjacencies[j], sizeof(int) * (unsigned int)adjacenciesSizes[j]);
-					}
-					printf("prev v ");
-					for (size_t j = 0; j < tempVisitingInUseSize; j++)
-					{
-						printf("%d ", visiting[j]);
-					}
-					printf("\n");
-					tempVisitingInUseSize = sortedRemoveDuplicatesIntArr(visiting, tempVisitingInUseSize);
-					printf("sort v ");
-					for (size_t j = 0; j < tempVisitingInUseSize; j++)
-					{
-						printf("%d ", visiting[j]);
-					}
-					printf("\n");
-					visitingInUse = removeFromIntArr(visited, totalVisited, visiting, tempVisitingInUseSize);
-					printf(" pos v ");
-					for (size_t j = 0; j < visitingInUse; j++)
-					{
-						printf("%d ", visiting[j]);
-					}
-					printf("\n");
-					if (!visitingInUse == 0)
-					{
-						visiting = realloc(visiting, sizeof(int) * (unsigned int)visitingInUse);
-					}
-				}
+				memcpy(&visiting[i], adjacencies[j], sizeof(int) * (unsigned int)adjacenciesSizes[j]);
+			}
+
+			// Clean next visiting level
+			tempVisitingSize = sortedRemoveDuplicatesIntArr(visiting, tempVisitingSize);
+			visitingInUse = removeFromIntArr(visited, totalVisited, visiting, tempVisitingSize);
+
+			// Free up unnecessary memory
+			if (visitingInUse != 0)
+			{
+				visiting = realloc(visiting, sizeof(int) * (unsigned int)visitingInUse);
 			}
 		}
+
 		free(visiting);
 		for (int i = 0; i < allocatedAdjacencies; i++)
 		{
 			free(adjacencies[i]);
 		}
-		return -1;
+
+		if (visitingInUse > 0) {
+			return crossings;
+		} else {
+			return -1;
+		}
 	}
 }
 
@@ -844,6 +808,7 @@ void interpreter(Cartography cartography, int nParcels)
 		double arg1 = -1.0, arg2 = -1.0, arg3 = -1.0;
 		sscanf(commandLine, "%c %lf %lf %lf", &command, &arg1, &arg2, &arg3);
 		// printf("%c %lf %lf %lf\n", command, arg1, arg2, arg3);
+		clock_t t;
 		switch( commandLine[0] ) {
 			case 'L': case 'l':	// listar
 				commandListCartography(cartography, nParcels);
