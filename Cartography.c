@@ -561,7 +561,7 @@ int removeDuplicatesSV(String** sv, int length)
 	{
 		if (strcmp((char*)*sv[i - 1], (char*)*sv[i]) != 0)
 		{
-			sv[newLength++] = sv[i - 1];
+			sv[newLength++] = sv[i];
 		}
 	}
 	return newLength;
@@ -654,6 +654,150 @@ static void commandAdjacencies(int pos, Cartography cartography, int nParcels)
 	}
 }
 
+bool inArray(int* array, int size, int elem)
+{
+	for (int i = 0; i < size; i++)
+	{
+		if (array[i] == elem)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+// Returns new length of sv
+int removeDuplicatesIntArr(int* arr, int length)
+{
+	if (length == 0 || length == 1)
+	{
+		return length;
+	}
+
+	int newLength = 0;
+	arr[newLength++] = arr[0];
+	for (int i = 1; i < length; i++)
+	{
+		if (arr[i - 1] != arr[i])
+		{
+			arr[newLength++] = arr[i];
+		}
+	}
+	return newLength;
+}
+
+static int compareInt(const void* a, const void* b) {
+	const int* pa = (const int*)a;
+	const int* pb = (const int*)b;
+	return *pa - *pb;
+}
+
+static int sortedRemoveDuplicatesIntArr(int* arr, int length)
+{
+	qsort(arr, (unsigned int)length, sizeof(int), compareInt);
+	return removeDuplicatesIntArr(arr, length);
+}
+
+
+static int removeFromIntArr(int* toRemove, int toRemoveLen, int* arr, int arrLen)
+{
+	int newLen = 0;
+	for (int i = 0; i < arrLen; i++)
+	{
+		if (!inArray(toRemove, toRemoveLen, arr[i]))
+		{
+			arr[newLen++] = arr[i];
+		}
+	}
+
+	return newLen;
+}
+
+static int crossingsBetween(int pos1, int pos2, Cartography cartography, int nParcels)
+{
+	if (pos1 == pos2) {
+		return 0;
+	}
+	else
+	{
+		int crossings = 1;
+		int visited[nParcels];
+		visited[0] = pos1;
+		int totalVisited = 1;
+		int* visiting = malloc(sizeof(int) * (unsigned int)nParcels);
+		int visitingInUse = adjacentTo(pos1, cartography, nParcels, visiting);
+		int* adjacencies[nParcels];
+		int adjacenciesSizes[nParcels];
+		int allocatedAdjacencies = 0;
+		while (visitingInUse > 0 && !inArray(visiting, visitingInUse, pos2))
+		{
+			// Update visited
+			crossings++;
+			memcpy(&visited[totalVisited], visiting, sizeof(int) * (unsigned int) visitingInUse);
+			totalVisited += visitingInUse;
+
+			// Grab new adjacencies
+			int tempVisitingSize = 0;
+			for (int i = 0; i < visitingInUse; i++)
+			{
+				// Allocate more memory if necessary
+				if (i >= allocatedAdjacencies)
+				{
+					adjacencies[i] = malloc(sizeof(int) * (unsigned int)nParcels);
+					allocatedAdjacencies++;
+				}
+				adjacenciesSizes[i] = adjacentTo(visiting[i], cartography, nParcels, adjacencies[i]);
+				tempVisitingSize += adjacenciesSizes[i];
+			}
+
+			// Merge adjacencies for the next visiting level
+			visiting = realloc(visiting, sizeof(int) * (unsigned int)tempVisitingSize);
+			for (int i = 0, j = 0; i < tempVisitingSize; i += adjacenciesSizes[j++])
+			{
+				memcpy(&visiting[i], adjacencies[j], sizeof(int) * (unsigned int)adjacenciesSizes[j]);
+			}
+
+			// Clean next visiting level
+			tempVisitingSize = sortedRemoveDuplicatesIntArr(visiting, tempVisitingSize);
+			visitingInUse = removeFromIntArr(visited, totalVisited, visiting, tempVisitingSize);
+
+			// Free up unnecessary memory
+			if (visitingInUse != 0)
+			{
+				visiting = realloc(visiting, sizeof(int) * (unsigned int)visitingInUse);
+			}
+		}
+
+		free(visiting);
+		for (int i = 0; i < allocatedAdjacencies; i++)
+		{
+			free(adjacencies[i]);
+		}
+
+		if (visitingInUse > 0) {
+			return crossings;
+		} else {
+			return -1;
+		}
+	}
+}
+
+static void commandBorders(int pos1, int pos2, Cartography cartography, int nParcels)
+{
+	if (!checkArgs(pos1) || !checkPos(pos1, nParcels)
+		|| !checkArgs(pos2) || !checkPos(pos2, nParcels)) {
+		return;
+	}
+
+	int crossings = crossingsBetween(pos1, pos2, cartography, nParcels);
+	if (crossings < 0) {
+		printf("NAO HA CAMINHO\n");
+	}
+	else {
+		printf("%d\n", crossings);
+	}
+}
+
 void interpreter(Cartography cartography, int nParcels)
 {
 	String commandLine;
@@ -664,6 +808,7 @@ void interpreter(Cartography cartography, int nParcels)
 		double arg1 = -1.0, arg2 = -1.0, arg3 = -1.0;
 		sscanf(commandLine, "%c %lf %lf %lf", &command, &arg1, &arg2, &arg3);
 		// printf("%c %lf %lf %lf\n", command, arg1, arg2, arg3);
+		clock_t t;
 		switch( commandLine[0] ) {
 			case 'L': case 'l':	// listar
 				commandListCartography(cartography, nParcels);
@@ -703,6 +848,10 @@ void interpreter(Cartography cartography, int nParcels)
 
 			case 'A': case 'a':	// Adjacencias
 				commandAdjacencies((int)arg1, cartography, nParcels);
+				break;
+
+			case 'F': case 'f':	// Fronteiras
+				commandBorders((int)arg1, (int)arg2, cartography, nParcels);
 				break;
 
 			case 'Z': case 'z':	// terminar
