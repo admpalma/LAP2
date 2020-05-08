@@ -798,6 +798,69 @@ static void commandBorders(int pos1, int pos2, Cartography cartography, int nPar
 	}
 }
 
+/* static void joinParts(int* part1,int* part2){ */
+/* 	for(int i = 0;i<part2.numParts;i++){ */
+/* 		part1.parts[part1.numParts++] = part2.parts[i]; */
+/* 	} */
+/* } */
+
+static void commandPartitions(double maxDistance,Cartography cartography ,int nParcels){
+	if (!checkArgs(maxDistance))
+		return;
+	int* allParts[nParcels];
+	int numPerPart[nParcels];
+	int numParts = 0;
+	int remaining = nParcels;
+	for(int i = 0;i<nParcels;i++){//Cartography parcel
+		/* printf("Parcel %d\n",i); */
+		bool gotIn = false;
+		for(int j = 0;j<numParts;j++){//
+			/* printf("Part %d\n",j); */
+			for(int k = 0;k<numPerPart[j];k++){
+				/* printf("Part inside Part %d\n",k); */
+				double distance = haversine(cartography[i].edge.vertexes[0], cartography[allParts[j][k]].edge.vertexes[0]);
+				if(distance<maxDistance){
+					allParts[j][numPerPart[j]++] = i;
+					gotIn = true;
+					break;
+				}
+			}
+		}
+		if(!gotIn){
+			numPerPart[numParts] = 1;
+			allParts[numParts] = malloc(sizeof(int)*remaining);
+			allParts[numParts++][0] = i;
+		}
+	}
+	for(int i = 0;i<numParts;i++){
+		for(int j = 0;j<numParts;j++){
+			if(i == j) j++;
+			for(int k = 0;k<numPerPart[i];k++){
+				for(int m = 0;m<numPerPart[j];m++){
+				if (allParts[i][k] == allParts[j][m]){
+					int temp[numPerPart[i]+numPerPart[j]];
+					memcpy(&allParts[i][numPerPart[i]], allParts[j], sizeof(int)*numPerPart[j]);
+					numPerPart[i] = sortedRemoveDuplicatesIntArr(allParts[i], numPerPart[i]+numPerPart[j]);
+					numPerPart[j] = 0;
+				}
+				}
+			}
+		}
+	}
+	for(int i = 0;i<numParts;i++){
+		printf("Num of elements: %d\n",numPerPart[i]);
+		int last= allParts[i][0];
+		for(int j = 0;j<numPerPart[i];j++){
+			if(!((last+1)==allParts[i][j])){
+				printf("%d ",allParts[i][j]);
+			}else{
+				last = allParts[i][j];
+			}
+		}
+		printf("\n");
+	}
+}
+
 void interpreter(Cartography cartography, int nParcels)
 {
 	String commandLine;
@@ -807,8 +870,7 @@ void interpreter(Cartography cartography, int nParcels)
 		char command = ' ';
 		double arg1 = -1.0, arg2 = -1.0, arg3 = -1.0;
 		sscanf(commandLine, "%c %lf %lf %lf", &command, &arg1, &arg2, &arg3);
-		// printf("%c %lf %lf %lf\n", command, arg1, arg2, arg3);
-		clock_t t;
+		//printf("%c %lf %lf %lf\n", command, arg1, arg2, arg3);
 		switch( commandLine[0] ) {
 			case 'L': case 'l':	// listar
 				commandListCartography(cartography, nParcels);
@@ -853,7 +915,9 @@ void interpreter(Cartography cartography, int nParcels)
 			case 'F': case 'f':	// Fronteiras
 				commandBorders((int)arg1, (int)arg2, cartography, nParcels);
 				break;
-
+			case 'T': case 't':
+				commandPartitions((double)arg1,cartography,nParcels);
+				break;
 			case 'Z': case 'z':	// terminar
 				printf("Fim de execucao! Volte sempre.\n");
 				return;
