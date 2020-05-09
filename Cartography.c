@@ -26,6 +26,15 @@ COMENTÁRIO
  Coloque aqui a identificação do grupo, mais os seus comentários, como
  se pede no enunciado.
 
+ Foram realizados todos os comandos pedidos e foi utilizada a versão dinâmica dos tipos.
+
+ É de se notar que o comando Fronteiras foi implemantado à custa de
+ um algoritmo semelhante a uma busca em largura (BFS);
+ e que o comando partições funciona por propagação da verificação das distâncias
+ a todas as parcelas à medida que estas vão sendo adicionadas a um subconjunto,
+ sendo um novo criado e o processo repetido sempre que não hajam novas parcelas
+ a entrar no subconjunto que estava a ser expandido.
+
 */
 
 #define USE_PTS		true
@@ -673,7 +682,7 @@ bool inArray(int* array, int size, int elem)
 	return false;
 }
 
-// Returns new length of sv
+// Returns new length of arr
 int removeDuplicatesIntArr(int* arr, int length)
 {
 	if (length == 0 || length == 1)
