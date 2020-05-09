@@ -170,7 +170,6 @@ static void showRectangle(Rectangle r)
 
 static Rectangle calculateBoundingBox(Coordinates vs[], int n)
 {
-	//TODO Done?
 	if(!n) error("n = 0 at calculateBoundingBox");
 	double maxLat=vs[n-1].lat,
 		   maxLon=vs[n-1].lon,
@@ -196,7 +195,6 @@ static Rectangle calculateBoundingBox(Coordinates vs[], int n)
 
 bool insideRectangle(Coordinates c, Rectangle r)
 {
-	//TODO Done?
 	return c.lat >= r.bottomRight.lat &&
 		c.lat <= r.topLeft.lat &&
 		c.lon >= r.topLeft.lon &&
@@ -420,7 +418,7 @@ static void commandMaximum(int pos, Cartography cartography, int nParcels)
 {
 	if( !checkArgs(pos) || !checkPos(pos, nParcels) )
 		return;
-	//TODO
+
 	int maxEdginess = countVertices(cartography[pos]);
 	int edgeIndex = pos;
 
@@ -520,21 +518,28 @@ static void commandHowMany(int pos, Cartography cartography, int nParcels)
 	if (!checkArgs(pos) || !checkPos(pos, nParcels)) {
 		return;
 	}
-	#define parish cartography[pos].identification.freguesia
-	#define county cartography[pos].identification.concelho
-	#define district cartography[pos].identification.distrito
+	#define parish identification.freguesia
+	#define county identification.concelho
+	#define district identification.distrito
 
 	const int DISTRICT = 0, COUNTY = 1, PARISH = 2;
 	int howMany[3] = { 0, 0, 0 };
 	for (int i = 0; i < nParcels; i++)
 	{
-		if (strcmp(district, cartography[i].identification.distrito) == 0) {
+		if (strcmp(cartography[pos].district, cartography[i].district) == 0) {
 			howMany[DISTRICT]++;
-			if (strcmp(county, cartography[i].identification.concelho) == 0) {
+			if (strcmp(cartography[pos].county, cartography[i].county) == 0) {
 				howMany[COUNTY]++;
-				if (strcmp(parish, cartography[i].identification.freguesia) == 0) {
-					// TODO Can be optimized
+				if (strcmp(cartography[pos].parish, cartography[i].parish) == 0) {
 					howMany[PARISH]++;
+					while (strcmp(cartography[pos].county, cartography[++i].county) == 0
+							&& strcmp(cartography[pos].parish, cartography[i].parish) == 0)
+					{
+						howMany[DISTRICT]++;
+						howMany[COUNTY]++;
+						howMany[PARISH]++;
+					}
+					i--;
 				}
 			}
 		}
@@ -858,7 +863,7 @@ static void commandPartitions(int maxDistance, Cartography cartography, int nPar
 			totalRemaining = removeFromIntArr(subsets[numSubsets] + oldSize,
 					subsetSize[numSubsets] - oldSize, remaining, totalRemaining);
 		}
-		qsort(subsets[numSubsets], subsetSize[numSubsets], sizeof(int), compareInt);
+		qsort(subsets[numSubsets], (unsigned int)subsetSize[numSubsets], sizeof(int), compareInt);
 		numSubsets++;
 	}
 
@@ -948,7 +953,7 @@ void interpreter(Cartography cartography, int nParcels)
 			case 'F': case 'f':	// Fronteiras
 				commandBorders((int)arg1, (int)arg2, cartography, nParcels);
 				break;
-			case 'T': case 't':
+			case 'T': case 't': // Particoes
 				commandPartitions((int)arg1,cartography,nParcels);
 				break;
 			case 'Z': case 'z':	// terminar
