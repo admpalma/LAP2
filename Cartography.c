@@ -217,7 +217,6 @@ static Ring readRing(FILE *f)
 	}
 	r.boundingBox =
 		calculateBoundingBox(r.vertexes, r.nVertexes);
-	/* printf("[%f,%f,%f,%f]\n",r.boundingBox.topLeft.lat,r.boundingBox.topLeft.lon,r.boundingBox.bottomRight.lat,r.boundingBox.bottomRight.lon); */
 	return r;
 }
 
@@ -403,10 +402,12 @@ static int countVertices(Parcel p){
 	return totalEdginess;
 }
 
-static void searchMaxEdgeWithDir(int pos, Cartography cartography, int nParcels, int dir,Identification id,int* maxEdginess, int* edgeIndex){
+static void searchMaxEdgeWithDir(int pos, Cartography cartography, int nParcels, int dir,
+		Identification id,int* maxEdginess, int* edgeIndex){
 	int currentEdginess = 0;
 
-	for(;(((pos<nParcels) && dir == 1) || ((pos>=nParcels) && dir == -1)) && sameIdentification(cartography[pos].identification, id, 3) ;pos+= dir){
+	for(;(((pos<nParcels) && dir == 1) || ((pos>=nParcels) && dir == -1)) &&
+			sameIdentification(cartography[pos].identification, id, 3) ;pos+= dir){
 		currentEdginess = countVertices(cartography[pos]);
 		if(currentEdginess>*maxEdginess){
 			*maxEdginess = currentEdginess;
@@ -440,7 +441,7 @@ static void commandExtreme(Cartography cartography,int nParcels){
 		east = 0,
 		south = 0,
 		west = 0;
-	
+
 	for (int i = 0; i < nParcels; i++)
 	{
 		if (cartography[north].edge.boundingBox.topLeft.lat <
@@ -747,7 +748,8 @@ static int crossingsBetween(int pos1, int pos2, Cartography cartography, int nPa
 					adjacencies[i] = malloc(sizeof(int) * (unsigned int)nParcels);
 					allocatedAdjacencies++;
 				}
-				adjacenciesSizes[i] = adjacentTo(visiting[i], cartography, nParcels, adjacencies[i]);
+				adjacenciesSizes[i] = adjacentTo(visiting[i], cartography,
+						nParcels, adjacencies[i]);
 				tempVisitingSize += adjacenciesSizes[i];
 			}
 
@@ -755,7 +757,8 @@ static int crossingsBetween(int pos1, int pos2, Cartography cartography, int nPa
 			visiting = realloc(visiting, sizeof(int) * (unsigned int)tempVisitingSize);
 			for (int i = 0, j = 0; i < tempVisitingSize; i += adjacenciesSizes[j++])
 			{
-				memcpy(&visiting[i], adjacencies[j], sizeof(int) * (unsigned int)adjacenciesSizes[j]);
+				memcpy(&visiting[i], adjacencies[j],
+						sizeof(int) * (unsigned int)adjacenciesSizes[j]);
 			}
 
 			// Clean next visiting level
@@ -801,9 +804,10 @@ static void commandBorders(int pos1, int pos2, Cartography cartography, int nPar
 
 static bool isInRangeOfAny(int* array, int size, int pos, int distance, Cartography cartography)
 {
-	for (int i = 0; i <= size; i++)
+	for (int i = 0; i < size; i++)
 	{
-		if (haversine(cartography[array[i]].edge.vertexes[0], cartography[pos].edge.vertexes[0]) < distance)
+		if (haversine(cartography[array[i]].edge.vertexes[0], cartography[pos].edge.vertexes[0]) <
+				distance)
 		{
 			return true;
 		}
@@ -844,12 +848,14 @@ static void commandPartitions(int maxDistance, Cartography cartography, int nPar
 			oldSize = subsetSize[numSubsets];
 			for (int i = 0; i < totalRemaining; i++)
 			{
-				if (isInRangeOfAny(subsets[numSubsets], oldSize, remaining[i], maxDistance, cartography))
+				if (isInRangeOfAny(subsets[numSubsets], oldSize, remaining[i],
+							maxDistance, cartography))
 				{
 					subsets[numSubsets][subsetSize[numSubsets]++] = remaining[i];
 				}
 			}
-			totalRemaining = removeFromIntArr(subsets[numSubsets] + oldSize, subsetSize[numSubsets] - oldSize, remaining, totalRemaining);
+			totalRemaining = removeFromIntArr(subsets[numSubsets] + oldSize,
+					subsetSize[numSubsets] - oldSize, remaining, totalRemaining);
 		}
 		numSubsets++;
 	}
@@ -866,7 +872,8 @@ static void commandPartitions(int maxDistance, Cartography cartography, int nPar
 			for (int j = 1; j < subsetSize[i]; j++) {
 				printf("%d", subsets[i][j - 1]);
 				int skipped = 0;
-				while (subsets[i][j + skipped - 1] == subsets[i][j + skipped] - 1 && skipped + j < subsetSize[i])
+				while (subsets[i][j + skipped - 1] == subsets[i][j + skipped] - 1 &&
+						skipped + j < subsetSize[i])
 				{
 					skipped++;
 				}
