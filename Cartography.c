@@ -806,7 +806,7 @@ static bool isInRangeOfAny(int* array, int size, int pos, int distance, Cartogra
 {
 	for (int i = 0; i < size; i++)
 	{
-		if (haversine(cartography[array[i]].edge.vertexes[0], cartography[pos].edge.vertexes[0]) <
+		if (haversine(cartography[array[i]].edge.vertexes[0], cartography[pos].edge.vertexes[0]) <=
 				distance)
 		{
 			return true;
@@ -845,18 +845,20 @@ static void commandPartitions(int maxDistance, Cartography cartography, int nPar
 		subsetSize[numSubsets] = 1;
 		int oldSize = 0;
 		while (subsetSize[numSubsets] != oldSize) {
-			oldSize = subsetSize[numSubsets];
+			int newInRange = subsetSize[numSubsets] - oldSize;
 			for (int i = 0; i < totalRemaining; i++)
 			{
-				if (isInRangeOfAny(subsets[numSubsets], oldSize, remaining[i],
+				if (isInRangeOfAny(&subsets[numSubsets][oldSize], newInRange, remaining[i],
 							maxDistance, cartography))
 				{
 					subsets[numSubsets][subsetSize[numSubsets]++] = remaining[i];
 				}
 			}
+			oldSize += newInRange;
 			totalRemaining = removeFromIntArr(subsets[numSubsets] + oldSize,
 					subsetSize[numSubsets] - oldSize, remaining, totalRemaining);
 		}
+		qsort(subsets[numSubsets], subsetSize[numSubsets], sizeof(int), compareInt);
 		numSubsets++;
 	}
 
